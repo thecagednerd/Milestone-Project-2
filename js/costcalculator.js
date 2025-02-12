@@ -10,41 +10,45 @@ document.getElementById("distanceForm").addEventListener("submit", async (event)
   const bookingFee = parseFloat(document.getElementById("bookingFee").value);
   const result = document.getElementById("result");
 
-  // Clears the previous result
+  // Clear previous result
   result.textContent = "Calculating...";
 
-  // Validates the inputs
+  // Validate inputs
   if (!origin || !destination || isNaN(pricePerMile) || isNaN(bookingFee)) {
     result.textContent = "Please fill in all fields correctly.";
     return;
   }
 
   try {
-    // Parse latitude and longitude from input
-    // const [originLat, originLon] = origin.split(",").map(Number);
-    // const [destinationLat, destinationLon] = destination.split(",").map(Number);
+//     // Parse latitude and longitude from input
+//     const [originLat, originLon] = origin.split(",").map(Number);
+//     const [destinationLat, destinationLon] = destination.split(",").map(Number);
 
-    // if (
-    //   isNaN(originLat) || 
-    //   isNaN(originLon) || 
-    //   isNaN(destinationLat) || 
-    //   isNaN(destinationLon)
-    // ) {
-    //   throw new Error("Invalid latitude/longitude format.");
-    // }
+//     if (
+//       isNaN(originLat) || 
+//       isNaN(originLon) || 
+//       isNaN(destinationLat) || 
+//       isNaN(destinationLon)
+//     ) {
+//       throw new Error("Invalid latitude/longitude format.");
+//     }
 
-    // Fetch distance data from OpenRouteService
     async function geocode(text){
-      const response = await fetch(`https://api.openrouteservice.org/geocode/search?text=${text}`, {
-        method: "GET",
-        headers: {
-          "Authorization": API_KEY,
-          "Content-Type": "application/json",
-        }
-      });
-  
-      const data = await response.json();
+        const response = await fetch(`https://api.openrouteservice.org/geocode/search?text=${text}`, {
+            method: "GET",
+            headers: {
+              "Authorization": API_KEY,
+              "Content-Type": "application/json",
+            },
+
+          });
+      
+          const data = await response.json();
+          console.log(data);
+          return data.features[0].geometry.coordinates;
+      
     }
+    // Fetch distance data from OpenRouteService
     const response = await fetch("https://api.openrouteservice.org/v2/matrix/driving-car", {
       method: "POST",
       headers: {
@@ -52,12 +56,13 @@ document.getElementById("distanceForm").addEventListener("submit", async (event)
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        locations: [[originLon, originLat], [destinationLon, destinationLat]],
+        locations: [await geocode(origin), await geocode(destination)],
         metrics: ["distance"],
       }),
     });
 
     const data = await response.json();
+    console.log(data);
 
     if (response.ok) {
       // Get the distance in meters and convert to miles
